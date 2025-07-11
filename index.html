@@ -271,7 +271,7 @@
   <!-- Right-side dropdown menu -->
   <div class="menu-container">
     <ul class="menu-list">
-      <li title="Surface Temperature"><i class="fa-solid fa-circle-info" data-key="fire"></i></li>
+      <li title="Turbulent Atmosphere"><i class="fa-solid fa-circle-info" data-key="fire"></i></li>
       <li title="Earth Comparison"><i class="fa-solid fa-earth-americas" data-key="earth"></i></li>
       <li title="Neptune Year"><i class="fa-solid fa-calendar" data-key="calendar"></i></li>
       <li title="Restart"><i class="fa-solid fa-arrows-rotate" data-key="restart"></i></li>
@@ -430,39 +430,115 @@
 
 
     // -------------------------------------------------------------------------
-    // Cloud layer for Neptune (atmospheric visualization)
+    // Swirling clouds for Neptune's turbulent atmosphere visualization
     // -------------------------------------------------------------------------
     let venusCloudLayer = null;
+    let swirlingClouds = [];
     
     function createVenusCloudLayer() {
       if (venusCloudLayer) return; // already created
       
-      // Scale down Neptune for better view of cloud effect
-      venus.scale.set(0.7, 0.7, 0.7);
+      console.log("Creating Neptune cloud layer..."); // Debug log
       
-      // Create a slightly larger sphere to represent Neptune's atmosphere
-      const cloudGeometry = new THREE.SphereGeometry(1.8, performanceSettings.sphereDetail, performanceSettings.sphereDetail);
-      const cloudMaterial = new THREE.MeshBasicMaterial({
-        color: 0x4169e1, // blue color for Neptune's methane atmosphere
-        transparent: true,
-        opacity: 0.4,
-        side: THREE.DoubleSide
-      });
+      // Create animated swirling cloud system around Neptune
+      const cloudGroup = new THREE.Group();
       
-      venusCloudLayer = new THREE.Mesh(cloudGeometry, cloudMaterial);
+      // Create multiple cloud bands at different latitudes for turbulent effect
+      const numCloudBands = 6;
+      const cloudParticles = 60; // Total number of cloud clusters (reduced since each is now multi-puff)
+      
+      for (let band = 0; band < numCloudBands; band++) {
+        const bandY = (band / (numCloudBands - 1) - 0.5) * 2.5; // Spread from -1.25 to 1.25
+        const bandRadius = 2.8 + Math.sin(band * 0.8) * 0.3; // Moved further from Neptune for better visibility
+        
+        // Create cloud particles for this band
+        const particlesPerBand = Math.floor(cloudParticles / numCloudBands);
+        
+        for (let i = 0; i < particlesPerBand; i++) {
+          const angle = (i / particlesPerBand) * Math.PI * 2;
+          
+          // Create realistic cloud cluster using multiple irregular spheres
+          const cloudCluster = new THREE.Group();
+          const numCloudPuffs = 3 + Math.floor(Math.random() * 4); // 3-6 puffs per cloud
+          
+          for (let puff = 0; puff < numCloudPuffs; puff++) {
+            const puffSize = 0.15 + Math.random() * 0.15; // Larger puff sizes for better visibility
+            
+            // Create irregular cloud geometry by scaling sphere non-uniformly
+            const puffGeometry = new THREE.SphereGeometry(puffSize, 12, 8);
+            
+            // Apply random scaling for irregular cloud shape
+            const scaleX = 0.8 + Math.random() * 0.6;
+            const scaleY = 0.6 + Math.random() * 0.8;
+            const scaleZ = 0.8 + Math.random() * 0.6;
+            puffGeometry.scale(scaleX, scaleY, scaleZ);
+            
+            const cloudMaterial = new THREE.MeshBasicMaterial({
+              color: new THREE.Color(0xffffff), // Pure white for maximum visibility
+              transparent: true,
+              opacity: 0.9, // Higher opacity for better visibility
+              side: THREE.DoubleSide
+            });
+            
+            const cloudPuff = new THREE.Mesh(puffGeometry, cloudMaterial);
+            
+            // Position puffs slightly offset for natural cloud clustering
+            const offsetX = (Math.random() - 0.5) * 0.4;
+            const offsetY = (Math.random() - 0.5) * 0.3;
+            const offsetZ = (Math.random() - 0.5) * 0.4;
+            cloudPuff.position.set(offsetX, offsetY, offsetZ);
+            
+            // Add slight random rotation for more natural appearance
+            cloudPuff.rotation.set(
+              Math.random() * Math.PI * 2,
+              Math.random() * Math.PI * 2,
+              Math.random() * Math.PI * 2
+            );
+            
+            cloudCluster.add(cloudPuff);
+          }
+          
+          const cloudParticle = cloudCluster;
+          
+          // Position clouds around Neptune
+          const x = Math.cos(angle) * bandRadius;
+          const z = Math.sin(angle) * bandRadius;
+          cloudParticle.position.set(x, bandY, z);
+          
+          // Store animation data
+          const cloudData = {
+            mesh: cloudParticle,
+            originalRadius: bandRadius,
+            angle: angle,
+            bandY: bandY,
+            speed: 0.01 + Math.random() * 0.02, // Random rotation speeds
+            wobble: Math.random() * 0.5, // Random wobble for turbulence
+            band: band
+          };
+          
+          swirlingClouds.push(cloudData);
+          cloudGroup.add(cloudParticle);
+        }
+      }
+      
+      venusCloudLayer = cloudGroup;
       venusCloudLayer.position.copy(venus.position);
       scene.add(venusCloudLayer);
+      
+      console.log(`Created ${swirlingClouds.length} cloud clusters around Neptune`); // Debug log
     }
     
     function removeVenusCloudLayer() {
       if (venusCloudLayer) {
+        // Clean up all cloud particles and their materials/geometries
+        // Each cloud is now a group with multiple puffs, so traverse deeper
+        venusCloudLayer.traverse((obj) => {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) obj.material.dispose();
+        });
         scene.remove(venusCloudLayer);
-        venusCloudLayer.geometry.dispose();
-        venusCloudLayer.material.dispose();
         venusCloudLayer = null;
-        
-        // Restore Neptune to original size
-        venus.scale.set(1, 1, 1);
+        swirlingClouds = []; // Clear the swirling clouds array
       }
     }
 
@@ -587,7 +663,7 @@
     // Facts and menu interactivity
     // -------------------------------------------------------------------------
     const facts = {
-      fire: "Neptune is the coldest planet in our solar system with temperatures dropping to -218°C (-360°F) due to its distance from the Sun.",
+      fire: "Neptune's extreme winds, nearing the speed of sound, create swirling cloud bands that amazed astronomers given the planet's minimal solar energy.",
       rotation: "Neptune's rotation: One Neptune day lasts about 16 Earth hours, making it one of the fastest rotating planets.",
       calendar: "Scientifically accurate orbits: Neptune takes 165 Earth years to orbit the Sun at 30.07 AU, while Earth takes 365.25 days at 1.0 AU.",
       earth: "Size comparison: Neptune radius ≈ 24,622 km (3.88 Earth radii), making it about 4 times larger than Earth and the 4th largest planet."
@@ -669,10 +745,51 @@
         venus.rotation.y += neptuneRotationSpeed;
       }
 
-      // Cloud layer rotation - slightly different speed to create atmospheric effect
-      if (venusCloudLayer) {
-        venusCloudLayer.rotation.y += 0.01; // faster rotation for dynamic cloud effect
-        venusCloudLayer.position.copy(venus.position); // follow Venus position
+      // Animate swirling clouds around Neptune to show turbulent atmosphere
+      if (venusCloudLayer && swirlingClouds.length > 0) {
+        const time = Date.now() * 0.001; // Get current time for animations
+        
+        // Debug log to confirm clouds are being animated
+        if (Math.floor(time) % 5 === 0 && time % 1 < 0.1) {
+          console.log(`Animating ${swirlingClouds.length} cloud clusters`);
+        }
+        
+        swirlingClouds.forEach((cloudData, index) => {
+          // Update angle for swirling motion (different speeds for different bands)
+          cloudData.angle += cloudData.speed * (1 + cloudData.band * 0.1);
+          
+          // Add turbulent wobble to radius and vertical position
+          const radiusWobble = Math.sin(time * 2 + index * 0.5) * 0.1;
+          const heightWobble = Math.sin(time * 1.5 + index * 0.3) * 0.2;
+          
+          // Calculate new position with turbulent motion
+          const currentRadius = cloudData.originalRadius + radiusWobble;
+          const x = Math.cos(cloudData.angle) * currentRadius;
+          const z = Math.sin(cloudData.angle) * currentRadius;
+          const y = cloudData.bandY + heightWobble;
+          
+          cloudData.mesh.position.set(x, y, z);
+          
+          // Add opacity pulsing and rotation for atmospheric effect
+          const opacityPulse = Math.sin(time * 3 + index * 0.8) * 0.1;
+          
+          // Since each cloud is now a group, animate each puff individually
+          cloudData.mesh.children.forEach((puff, puffIndex) => {
+            if (puff.material) {
+              // Keep clouds visible with higher opacity
+              puff.material.opacity = 0.9 + Math.sin(time * 2 + puffIndex) * 0.1;
+            }
+            
+            // Gentle individual puff rotation for natural cloud movement
+            puff.rotation.y += 0.005 + puffIndex * 0.002;
+            puff.rotation.x += 0.003 + puffIndex * 0.001;
+          });
+          
+          // Gentle overall cloud group rotation
+          cloudData.mesh.rotation.y += 0.003;
+        });
+        
+        venusCloudLayer.position.copy(venus.position); // follow Neptune position
       }
 
       // Earth rotation - baseline 24-hour day
