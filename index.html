@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Venus Orbit with Three.js</title>
+  <title>Neptune Interactive with Three.js</title>
   <style>
     /* Make the canvas fill the window */
     body {
@@ -273,7 +273,7 @@
     <ul class="menu-list">
       <li title="Surface Temperature"><i class="fa-solid fa-circle-info" data-key="fire"></i></li>
       <li title="Earth Comparison"><i class="fa-solid fa-earth-americas" data-key="earth"></i></li>
-      <li title="Venus Year"><i class="fa-solid fa-calendar" data-key="calendar"></i></li>
+      <li title="Neptune Year"><i class="fa-solid fa-calendar" data-key="calendar"></i></li>
       <li title="Restart"><i class="fa-solid fa-arrows-rotate" data-key="restart"></i></li>
     </ul>
     <div id="factBox" class="fact-box"></div>
@@ -340,20 +340,20 @@
     scene.add(directionalLight);
 
     // -------------------------------------------------------------------------
-    // Venus sphere with texture
+    // Neptune sphere with texture
     // -------------------------------------------------------------------------
     const textureLoader = new THREE.TextureLoader();
-    const venusTexture = textureLoader.load("./2k_neptune.jpg");
+    const neptuneTexture = textureLoader.load("./2k_neptune.jpg");
 
     // Preload Earth texture so Earth sphere can appear instantly when requested
     const preloadedEarthTexture = textureLoader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
 
     const sphereGeometry = new THREE.SphereGeometry(2, performanceSettings.sphereDetail, performanceSettings.sphereDetail);
-    const sphereMaterial = new THREE.MeshStandardMaterial({ map: venusTexture });
-    const venus = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    const sphereMaterial = new THREE.MeshStandardMaterial({ map: neptuneTexture });
+    const venus = new THREE.Mesh(sphereGeometry, sphereMaterial); // Note: variable name 'venus' but this is Neptune
 
     // -------------------------------------------------------------------------
-    // Position Venus at the center (origin) of the scene
+    // Position Neptune at the center (origin) of the scene
     // -------------------------------------------------------------------------
     venus.position.set(0, 0, 0);
     scene.add(venus);
@@ -412,8 +412,8 @@
     const NEPTUNE_ORBIT_R = 2.8;  // Outer orbit - Neptune
     const EARTH_ORBIT_R = 0.5;    // Inner orbit - Earth (visible size)
 
-    // Raise Venus higher so it doesn't overlap lower UI elements
-    const VENUS_Y = 2;   // tweak as desired
+    // Raise Neptune higher so it doesn't overlap lower UI elements
+    const VENUS_Y = 2;   // tweak as desired (keeping variable name for compatibility)
 
     // -------------------------------------------------------------------------
     // Helper for lat/lon to Vector3 on sphere
@@ -430,20 +430,20 @@
 
 
     // -------------------------------------------------------------------------
-    // Cloud layer for Venus (thick atmosphere visualization)
+    // Cloud layer for Neptune (atmospheric visualization)
     // -------------------------------------------------------------------------
     let venusCloudLayer = null;
     
     function createVenusCloudLayer() {
       if (venusCloudLayer) return; // already created
       
-      // Scale down Venus for better view of cloud effect
+      // Scale down Neptune for better view of cloud effect
       venus.scale.set(0.7, 0.7, 0.7);
       
-      // Create a slightly larger sphere to represent the thick atmosphere
+      // Create a slightly larger sphere to represent Neptune's atmosphere
       const cloudGeometry = new THREE.SphereGeometry(1.8, performanceSettings.sphereDetail, performanceSettings.sphereDetail);
       const cloudMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffd700, // yellowish color for sulfuric acid clouds
+        color: 0x4169e1, // blue color for Neptune's methane atmosphere
         transparent: true,
         opacity: 0.4,
         side: THREE.DoubleSide
@@ -461,7 +461,7 @@
         venusCloudLayer.material.dispose();
         venusCloudLayer = null;
         
-        // Restore Venus to original size
+        // Restore Neptune to original size
         venus.scale.set(1, 1, 1);
       }
     }
@@ -472,13 +472,16 @@
     function createEarth() {
       if (earthMesh) return;
 
-      // Shift Venus left first so positions are set before rendering
-      venus.position.set(-2.5, 0, 0);
+      // Shift Neptune left first so positions are set before rendering
+      venus.position.set(-3.5, 0, 0);
 
-      const earthGeom = new THREE.SphereGeometry(2, performanceSettings.sphereDetail, performanceSettings.sphereDetail);
+      // Scientifically accurate sizing: Neptune is 4x Earth's diameter
+      // Neptune radius = 2 (current), so Earth radius = 2/4 = 0.5
+      const earthRadius = 0.5;
+      const earthGeom = new THREE.SphereGeometry(earthRadius, performanceSettings.sphereDetail, performanceSettings.sphereDetail);
       const earthMat = new THREE.MeshStandardMaterial({ map: preloadedEarthTexture });
       earthMesh = new THREE.Mesh(earthGeom, earthMat);
-      earthMesh.position.set(2.5, 0, 0);
+      earthMesh.position.set(1.5, 0, 0);
       scene.add(earthMesh);
     }
 
@@ -534,7 +537,7 @@
       venus.position.y = 0;
       if (earthMesh) earthMesh.position.y = 0;
 
-      // Restore big Venus/Earth visibility
+      // Restore big Neptune/Earth visibility
       venus.visible = true;
       if (earthMesh) earthMesh.visible = true;
     }
@@ -543,7 +546,7 @@
       // Remove Earth if not selecting earth
       if (selectedKey !== 'earth') {
         removeEarth();
-        // center Venus if it was shifted
+        // center Neptune if it was shifted
         venus.position.set(0, 0, 0);
       }
 
@@ -567,7 +570,7 @@
       removeVenusCloudLayer();
       removeCalendarUI();
 
-      // Reset Venus
+      // Reset Neptune
       venus.position.set(0,0,0);
       venus.visible = true;
       rotationPaused = false;
@@ -654,10 +657,16 @@
     function animate() {
       requestAnimationFrame(animate);
 
-      // Venus retrograde rotation (unless paused) - much slower than Earth
-      // Venus takes 243 Earth days to rotate, so it should be about 243x slower
+      // Scientifically accurate rotations:
+      // Neptune: 16 hours per day, Earth: 24 hours per day
+      // Neptune rotates 1.5 times faster than Earth (24/16 = 1.5)
+      const baseRotationSpeed = 0.005;
+      const neptuneRotationSpeed = baseRotationSpeed * 1.5; // 1.5x faster than Earth
+      
+      // Neptune rotation (unless paused)
+      // Note: 'venus' variable name is used but this is actually Neptune
       if (!rotationPaused) {
-        venus.rotation.y -= 0.005 / 243;
+        venus.rotation.y += neptuneRotationSpeed;
       }
 
       // Cloud layer rotation - slightly different speed to create atmospheric effect
@@ -666,8 +675,8 @@
         venusCloudLayer.position.copy(venus.position); // follow Venus position
       }
 
-      // Earth prograde rotation - normal speed
-      if (earthMesh) earthMesh.rotation.y += 0.005;
+      // Earth rotation - baseline 24-hour day
+      if (earthMesh) earthMesh.rotation.y += baseRotationSpeed;
 
       // Mini orbits now advance only via the slider; no automatic update.
 
