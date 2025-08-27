@@ -473,13 +473,13 @@
             const scaleZ = 0.8 + Math.random() * 0.6;
             puffGeometry.scale(scaleX, scaleY, scaleZ);
             
-            const cloudMaterial = new THREE.MeshBasicMaterial({
+                  const cloudMaterial = new THREE.MeshBasicMaterial({
               color: new THREE.Color(0xffffff), // Pure white for maximum visibility
               transparent: true,
-              opacity: 0.9, // Higher opacity for better visibility
+              opacity: 0.6 + Math.random() * 0.4, // Variable opacity: 0.6 to 1.0 for natural variation
               side: THREE.DoubleSide
             });
-            
+      
             const cloudPuff = new THREE.Mesh(puffGeometry, cloudMaterial);
             
             // Position puffs slightly offset for natural cloud clustering
@@ -549,7 +549,7 @@
       if (earthMesh) return;
 
       // Shift Neptune left first so positions are set before rendering
-      venus.position.set(-3.5, 0, 0);
+      venus.position.set(-2.0, 0, 0);
 
       // Scientifically accurate sizing: Neptune is 4x Earth's diameter
       // Neptune radius = 2 (current), so Earth radius = 2/4 = 0.5
@@ -557,7 +557,7 @@
       const earthGeom = new THREE.SphereGeometry(earthRadius, performanceSettings.sphereDetail, performanceSettings.sphereDetail);
       const earthMat = new THREE.MeshStandardMaterial({ map: preloadedEarthTexture });
       earthMesh = new THREE.Mesh(earthGeom, earthMat);
-      earthMesh.position.set(1.5, 0, 0);
+      earthMesh.position.set(3.0, 0, 0);
       scene.add(earthMesh);
     }
 
@@ -776,8 +776,9 @@
           // Since each cloud is now a group, animate each puff individually
           cloudData.mesh.children.forEach((puff, puffIndex) => {
             if (puff.material) {
-              // Keep clouds visible with higher opacity
-              puff.material.opacity = 0.9 + Math.sin(time * 2 + puffIndex) * 0.1;
+              // Variable opacity with some clouds being more transparent
+              const baseOpacity = 0.5 + Math.sin(time * 2 + puffIndex) * 0.3;
+              puff.material.opacity = Math.max(0.3, Math.min(0.9, baseOpacity));
             }
             
             // Gentle individual puff rotation for natural cloud movement
