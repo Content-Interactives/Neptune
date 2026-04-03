@@ -1,43 +1,30 @@
 # Neptune Interactive
 
-This repository contains the code for the **Neptune Interactive**, designed to help students explore and understand the characteristics and features of the planet Neptune through engaging visuals and instant feedback.
+Static page for Neptune’s characteristics (HTML/CSS/JS). [Standards.md](Standards.md) holds curriculum and integration notes.
 
----
+**Live:** https://content-interactives.github.io/Neptune
 
-## 🔗 Live Interactive
+## Development
 
-Try it out here:  
-👉 [https://content-interactives.github.io/Neptune](https://content-interactives.github.io/Neptune)
+```bash
+npm run dev
+```
 
----
+Runs `npx http-server -p 8082` per `package.json`. Browse to the served root and open `index.html`.
 
-## 🌐 Where This Interactive Is Being Used
+Alternatively: `npx serve .` from the repo root.
 
-This interactive is currently featured in the following locations:
+## Layout
 
-- <img width="20" height="20" alt="image" src="https://github.com/user-attachments/assets/5d12571f-8e12-4441-98ab-c0bc94069a96" /> **CK-12 Intent Response**  
-  - 👉 PRODUCTION: [PENDING]  
-  - 👉 MASTER: [PENDING]
-- 📘 **CK-12 Flexbooks**  
-  - 👉 [PENDING: Book/lesson link where this interactive appears]
+- `index.html` — entry  
+- `Flexi_Telescope.svg` and other assets referenced by the page
 
----
+There is no `src/` or `public/` build tree; the former README’s paths referred to a different layout.
 
-## 📚 Standards & Subjects
+## Stack
 
-This interactive aligns with the following topics and standards:
+Static HTML, CSS, JavaScript.
 
-- **📂 Subject Area**: Middle School Science  
-- **🪐 Topic**: Neptune — Understanding the characteristics and features of the planet Neptune  
-- **📏 Next Generation Science Standards (NGSS)**:  
-  - **MS-ESS1-3** – Analyze and interpret data to determine scale properties of objects in the solar system.  
-  - **MS-ESS1-4** – Construct a scientific explanation based on evidence from rock strata for how the geologic time scale is used to organize Earth's 4.6-billion-year-old history.  
-  - **MS-ESS2-4** – Develop a model to describe the cycling of Earth's materials and the flow of energy that drives this process.
+## Deployment
 
----
-
-## 🛠️ Developer Notes
-
-- Built with: HTML  
-- Deployed via: GitHub Pages  
-- See `index.html` and supporting assets in `src/` and `public/` folders
+Copy the static files to GitHub Pages.
